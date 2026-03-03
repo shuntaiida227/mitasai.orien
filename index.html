@@ -4,36 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>新歓 局適性診断 Pro</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
             --agree-color: #00b894;
             --disagree-color: #a29bfe;
             --neutral-color: #dfe6e9;
             --primary-blue: #e67e22;
-            --bg-gradient: linear-gradient(135deg, #ff4b2b 0%, #ffb88c 100%);
         }
 
         body {
             font-family: 'Helvetica Neue', Arial, "Hiragino Sans", "Meiryo", sans-serif;
-           background: 
-        linear-gradient(135deg, rgba(255, 75, 43, 0.8) 0%, rgba(255, 184, 140, 0.8) 100%),
-        url('background.png');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-  
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    color: #4a2311;
-}
+            /* 背景設定：写真をそのまま表示 */
+            background-image: url('background.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #4a2311;
+        }
 
         .container {
             max-width: 500px;
             width: 90%;
-            background: white;
+            background: rgba(255, 255, 255, 0.95); /* 少しだけ透かして背景をなじませる */
             padding: 40px 30px;
             border-radius: 30px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.15);
@@ -41,14 +41,12 @@
             border: 4px solid #fff;
         }
 
-        /* アニメーション */
         @keyframes popIn {
             0% { transform: scale(0.8); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
         }
 
         h1 { font-size: 1.8rem; margin-bottom: 1rem; color: #2c3e50; }
-        
         #start-area h1 {
             font-size: 2.2rem;
             background: -webkit-linear-gradient(#0984e3, #6c5ce7);
@@ -57,8 +55,6 @@
         }
 
         .description { font-size: 1rem; color: #636e72; line-height: 1.6; margin-bottom: 2rem; }
-
-        /* クイズ部分 */
         .progress { color: #b2bec3; font-weight: bold; margin-bottom: 20px; }
         h2 { font-size: 1.3rem; min-height: 3.5rem; display: flex; align-items: center; justify-content: center; }
 
@@ -79,7 +75,6 @@
         .circle-btn:active { transform: scale(0.9); }
         .circle-btn:hover { background: #f1f2f6; }
 
-        /* 結果画面 */
         #result-name {
             font-size: 2.8rem;
             font-weight: bold;
@@ -91,34 +86,23 @@
             background: var(--primary-blue); color: white; border: none; padding: 16px 40px;
             border-radius: 50px; font-size: 1.1rem; font-weight: bold; cursor: pointer;
             transition: 0.3s; width: 100%; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
         }
         .action-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
 
         .hidden { display: none; }
 
-    @media (max-width: 480px) {
-            .container {
-                padding: 30px 15px;
-            }
-            .scale-container {
-                gap: 5px;
-            }
-            .circle-btn {
-                transform: scale(0.9); 
-            }
+        @media (max-width: 480px) {
+            .container { padding: 30px 15px; }
             .btn-xl, .btn-xs { width: 50px; height: 50px; }
             .btn-l, .btn-s { width: 40px; height: 40px; }
             .btn-m { width: 30px; height: 30px; }
-            .scale-label {
-                font-size: 0.7rem;
-                width: 45px;
-            }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="container" id="main-container">
     <div id="start-area">
         <h1>局適性診断</h1>
         <p class="description">
@@ -144,31 +128,32 @@
         </div>
     </div>
 
-
     <div id="result-area" class="hidden">
         <p style="font-weight: bold; color: #636e72;">あなたに最適なのは...</p>
         <div id="result-name"></div>
         <div style="background: #f8f9fa; padding: 20px; border-radius: 15px; margin-bottom: 30px;">
             <p id="result-desc" class="description" style="margin-bottom:0;"></p>
         </div>
+        
+        <button class="action-btn" id="save-btn" onclick="saveResultImage()" style="background:#2ecc71;">結果を画像で保存する</button>
         <button class="action-btn" onclick="location.reload()" style="background:#b2bec3;">最初からやり直す</button>
     </div>
 </div>
 
 <script>
     const questions = [
-    { text: "何かを一から作ることが好きだ", weights: { head: 5, general: 1 } },
-    { text: "表舞台に立つより、チームが円滑に回るよう支えたい", weights: { head: 3, general: 5 } },
-    { text: "デザインや動画制作をするのが好きだ", weights: { pr: 4, head: 1 } },
-    { text: "成功のために、地道な準備をコツコツこなすのが苦ではない", weights: { head: 3, general: 3 } },
-    { text: "初対面の人や年上の人と話す時も、あまり緊張しない", weights: { external: 4 } },
-    { text: "InstagramなどのSNSで、映える写真や加工にこだわりがある", weights: { pr: 5 } },
-    { text: "自分のアイデアが形になって、人の喜ぶ顔が見れると嬉しい", weights: { head: 3, pr: 5 } },
-    { text: "暇になるよりも、忙しく動き回る方が充実感があり好きだ", weights: { head: 3, general: 5 } },
-    { text: "自分の頑張りが、数字や形で目に見える方が好きだ", weights: { external: 3, pr: 3 } },
-    { text: "企業と関わり、社会に出て役立つ力を今から身につけたい", weights: { external: 5 } },
-    { text: "荷物運びなど、力仕事も苦ではない", weights: { external: 4, general: 3 } } 
-];
+        { text: "何かを一から作ることが好きだ", weights: { head: 5, general: 1 } },
+        { text: "表舞台に立つより、チームが円滑に回るよう支えたい", weights: { head: 3, general: 5 } },
+        { text: "デザインや動画制作をするのが好きだ", weights: { pr: 4, head: 1 } },
+        { text: "成功のために、地道な準備をコツコツこなすのが苦ではない", weights: { head: 3, general: 3 } },
+        { text: "初対面の人や年上の人と話す時も、あまり緊張しない", weights: { external: 4 } },
+        { text: "InstagramなどのSNSで、映える写真や加工にこだわりがある", weights: { pr: 5 } },
+        { text: "自分のアイデアが形になって、人の喜ぶ顔が見れると嬉しい", weights: { head: 3, pr: 5 } },
+        { text: "暇になるよりも、忙しく動き回る方が充実感があり好きだ", weights: { head: 3, general: 5 } },
+        { text: "自分の頑張りが、数字や形で目に見える方が好きだ", weights: { external: 3, pr: 3 } },
+        { text: "企業と関わり、社会に出て役立つ力を今から身につけたい", weights: { external: 5 } },
+        { text: "荷物運びなど、力仕事も苦ではない", weights: { external: 4, general: 3 } } 
+    ];
 
     const bureauInfo = {
         general: { name: "一般企画局", desc: "お祭りの主役！様々な参加団体のサポートや、インフラ整備など三田祭運営全体を行います。三田祭を自分たちの手で動かす貴重な体験ができます！" },
@@ -181,7 +166,7 @@
     let scores = { general: 0, pr: 0, head: 0, external: 0 };
 
     function startQuiz() {
-　　　　 questions.sort(() => Math.random() - 0.5);
+        questions.sort(() => Math.random() - 0.5);
         document.getElementById('start-area').classList.add('hidden');
         document.getElementById('quiz-area').classList.remove('hidden');
         showQuestion();
@@ -201,7 +186,6 @@
         for (let bureauId in currentWeights) {
             scores[bureauId] += currentWeights[bureauId] * multiplier;
         }
-        
         setTimeout(() => {
             currentIndex++;
             showQuestion();
@@ -225,8 +209,24 @@
         const resultName = document.getElementById('result-name');
         resultName.innerText = bureauInfo[winner].name;
         resultName.style.color = colors[winner];
-        
         document.getElementById('result-desc').innerText = bureauInfo[winner].desc;
+    }
+    function saveResultImage() {
+        const element = document.getElementById("main-container");
+        const saveBtn = document.getElementById("save-btn");
+    
+        saveBtn.style.visibility = "hidden";
+
+        html2canvas(element, {
+            backgroundColor: null,
+            scale: 2
+        }).then(canvas => {
+            const link = document.createElement("a");
+            link.download = "三田祭局診断結果.png";
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+            saveBtn.style.visibility = "visible";
+        });
     }
 </script>
 
