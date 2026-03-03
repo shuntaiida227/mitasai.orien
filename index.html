@@ -15,34 +15,47 @@
 
         body {
             font-family: 'Helvetica Neue', Arial, "Hiragino Sans", "Meiryo", sans-serif;
-            background-color: #f0f2f5; /* 背景画像がない時の予備色 */
+            /* 背景設定：大きな写真はbodyに残す */
+            background-image: url('background.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            
             margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            color: #4a2311;
         }
 
         .container {
             max-width: 500px;
             width: 90%;
-            /* ↓ 背景画像の設定をこちらに移動しました */
-            background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url('background.png');
-            background-size: cover;
-            background-position: center;
-            
+            background: rgba(255, 255, 255, 0.95); /* 白いボックス */
             padding: 40px 30px;
             border-radius: 30px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.15);
             text-align: center;
             border: 4px solid #fff;
             position: relative;
-            overflow: hidden;
+        }
+
+        /* ↓ キャラクター画像エリアのスタイルを追加 */
+        .character-area {
+            margin-bottom: 20px;
+        }
+        .character-img {
+            max-width: 150px; /* 画像の横幅（好みで調整してください） */
+            height: auto;
+            animation: popIn 0.8s ease-out; /* 登場アニメーション */
         }
 
         @keyframes popIn {
-            0% { transform: scale(0.8); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
+            0% { transform: scale(0); opacity: 0; }
+            80% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); }
         }
 
         h1 { font-size: 1.8rem; margin-bottom: 1rem; color: #2c3e50; }
@@ -77,8 +90,7 @@
         #result-name {
             font-size: 2.8rem;
             font-weight: bold;
-            margin: 20px 0;
-            animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin: 10px 0;
         }
 
         .action-btn {
@@ -93,6 +105,7 @@
 
         @media (max-width: 480px) {
             .container { padding: 30px 15px; }
+            .character-img { max-width: 120px; } /* スマホでは少し小さく */
             .btn-xl, .btn-xs { width: 50px; height: 50px; }
             .btn-l, .btn-s { width: 40px; height: 40px; }
             .btn-m { width: 30px; height: 30px; }
@@ -103,6 +116,9 @@
 
 <div class="container" id="main-container">
     <div id="start-area">
+        <div class="character-area">
+            <img src="character.png" alt="キャラクター" class="character-img">
+        </div>
         <h1>局適性診断</h1>
         <p class="description">
             あなたにぴったりの役割はどこ？<br>
@@ -128,7 +144,10 @@
     </div>
 
     <div id="result-area" class="hidden">
-        <p style="font-weight: bold; color: #636e72;">あなたに最適なのは...</p>
+        <div class="character-area">
+            <img src="character.png" alt="キャラクター" class="character-img">
+        </div>
+        <p style="font-weight: bold; color: #636e72; margin-bottom: 0;">あなたに最適なのは...</p>
         <div id="result-name"></div>
         <div style="background: rgba(248, 249, 250, 0.8); padding: 20px; border-radius: 15px; margin-bottom: 30px;">
             <p id="result-desc" class="description" style="margin-bottom:0; color: #2c3e50; font-weight: bold;"></p>
@@ -212,16 +231,15 @@
     }
 
     function saveResultImage() {
-        const element = document.getElementById("main-container");
+        // body全体（背景写真含む）を保存対象にする
+        const element = document.body; 
         const saveBtn = document.getElementById("save-btn");
     
         saveBtn.style.visibility = "hidden";
 
         html2canvas(element, {
-            backgroundColor: null,
-            useCORS: true, // 背景画像を読み込むための設定
-            scale: 2,
-            logging: true
+            useCORS: true, // 画像を読み込むための設定
+            scale: 2
         }).then(canvas => {
             const link = document.createElement("a");
             link.download = "三田祭局診断結果.png";
